@@ -1,0 +1,393 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Varejonline API - Pedidos",
+    "description": "Especificação Swagger / OpenAPI 3.0 para integração com o endpoint de Pedidos da API Varejonline.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Suporte Varejonline",
+      "url": "https://github.com/Varejonline/api"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://app.varejonline.com.br/api",
+      "description": "Servidor de Produção Varejonline"
+    },
+    {
+      "url": "https://sandbox.varejonline.com.br/api",
+      "description": "Servidor de Sandbox / Homologação"
+    }
+  ],
+  "security": [
+    {
+      "TokenAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Pedidos",
+      "description": "Operações de consulta e gerenciamento de pedidos de venda"
+    }
+  ],
+  "paths": {
+    "/pedidos": {
+      "get": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Listar / Consultar Pedidos",
+        "description": "Retorna uma lista paginada de pedidos de venda com base nos filtros informados.",
+        "operationId": "getPedidos",
+        "parameters": [
+          {
+            "name": "inicio",
+            "in": "query",
+            "description": "Data/hora inicial para pesquisa no formato ISO 8601",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2026-01-01T00:00:00Z"
+            }
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "description": "Data/hora final para pesquisa no formato ISO 8601",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2026-01-31T23:59:59Z"
+            }
+          },
+          {
+            "name": "idCliente",
+            "in": "query",
+            "description": "Identificador único do cliente para filtrar pedidos",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 98765
+            }
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "description": "Situação/status do pedido",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ABERTO",
+                "FATURADO",
+                "CANCELADO",
+                "EM_ANDAMENTO",
+                "ENTREGUE"
+              ],
+              "example": "FATURADO"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "description": "Número da página da consulta",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "example": 1
+            }
+          },
+          {
+            "name": "quantidade",
+            "in": "query",
+            "description": "Quantidade de registros por página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "example": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Consulta realizada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaListaPedidos"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requisição inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroAPI"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroAPI"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pedidos/{id}": {
+      "get": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Obter Detalhes do Pedido por ID",
+        "description": "Retorna os detalhes completos de um pedido específico por seu ID único.",
+        "operationId": "getPedidoPorId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID numérico do pedido",
+            "schema": {
+              "type": "integer",
+              "example": 123456
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pedido encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PedidoDetalhado"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroAPI"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "TokenAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-TOKEN",
+        "description": "Token de autenticação fornecido pelo Varejonline."
+      }
+    },
+    "schemas": {
+      "RespostaListaPedidos": {
+        "type": "object",
+        "properties": {
+          "pagina": {
+            "type": "integer",
+            "example": 1
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "example": 5
+          },
+          "totalRegistros": {
+            "type": "integer",
+            "example": 230
+          },
+          "itens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PedidoResumido"
+            }
+          }
+        }
+      },
+      "PedidoResumido": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 123456
+          },
+          "numeroPedido": {
+            "type": "string",
+            "example": "PED-2026-0012"
+          },
+          "data": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-01-15T14:30:00Z"
+          },
+          "idCliente": {
+            "type": "integer",
+            "example": 98765
+          },
+          "nomeCliente": {
+            "type": "string",
+            "example": "João da Silva"
+          },
+          "valorTotal": {
+            "type": "number",
+            "format": "float",
+            "example": 450.9
+          },
+          "situacao": {
+            "type": "string",
+            "example": "FATURADO"
+          }
+        }
+      },
+      "PedidoDetalhado": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 123456
+          },
+          "numeroPedido": {
+            "type": "string",
+            "example": "PED-2026-0012"
+          },
+          "data": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-01-15T14:30:00Z"
+          },
+          "cliente": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 98765
+              },
+              "nome": {
+                "type": "string",
+                "example": "João da Silva"
+              },
+              "cpfCnpj": {
+                "type": "string",
+                "example": "12345678901"
+              },
+              "email": {
+                "type": "string",
+                "example": "joao.silva@email.com"
+              }
+            }
+          },
+          "itens": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "idProduto": {
+                  "type": "integer",
+                  "example": 5012
+                },
+                "codigoSKU": {
+                  "type": "string",
+                  "example": "PROD-ABC-123"
+                },
+                "descricao": {
+                  "type": "string",
+                  "example": "Camisa Polo Algodão Azul M"
+                },
+                "quantidade": {
+                  "type": "number",
+                  "example": 2
+                },
+                "valorUnitario": {
+                  "type": "number",
+                  "example": 150.0
+                },
+                "valorDesconto": {
+                  "type": "number",
+                  "example": 10.0
+                },
+                "valorTotal": {
+                  "type": "number",
+                  "example": 290.0
+                }
+              }
+            }
+          },
+          "pagamentos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "formaPagamento": {
+                  "type": "string",
+                  "example": "CARTAO_CREDITO"
+                },
+                "valor": {
+                  "type": "number",
+                  "example": 450.9
+                },
+                "parcelas": {
+                  "type": "integer",
+                  "example": 3
+                }
+              }
+            }
+          },
+          "valorFrete": {
+            "type": "number",
+            "example": 20.9
+          },
+          "valorTotal": {
+            "type": "number",
+            "example": 450.9
+          },
+          "situacao": {
+            "type": "string",
+            "example": "FATURADO"
+          }
+        }
+      },
+      "ErroAPI": {
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "type": "integer",
+            "example": 400
+          },
+          "mensagem": {
+            "type": "string",
+            "example": "O parâmetro 'inicio' deve estar em um formato de data válido."
+          },
+          "detalhes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Data inicial não pode ser superior à data final."
+            ]
+          }
+        }
+      }
+    }
+  }
+}
